@@ -1,4 +1,6 @@
-package com.liujiang.nettylearn.NIO;
+package com.liujiang.nettylearn.IO;
+
+import com.liujiang.nettylearn.studyNetty.IO.HandlerExecutorPool;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -7,17 +9,6 @@ import java.net.Socket;
 public class TimeServer {
     private static int PORT = 8081;
     public static void main(String[] args) {
-      /*  int port = 8080;
-
-            if (args != null && args.length > 0) {
-                try {
-                    port = Integer.valueOf(args[0]);
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                }
-            }*/
-
-
 
         // 负责绑定IP地址，启动监听接口
         ServerSocket server=null;
@@ -25,11 +16,16 @@ public class TimeServer {
 
                 server = new ServerSocket(PORT);
                 System.out.println("服务器已经启动：The time server is start in port :"+PORT);
+                //采用线程池的方式
+               HandlerExecutorPool pool = new HandlerExecutorPool(50, 1000);
                 // 负责发起连接操作
                 Socket socket = null;
                 while (true) {
                     socket = server.accept();
                     new Thread(new TimeServerHandler(socket)).start();
+
+                  /*  // 线程池启动
+                    pool.execute(new TimeServerHandler(socket));*/
                 }
             } catch (IOException e) {
                 e.printStackTrace();

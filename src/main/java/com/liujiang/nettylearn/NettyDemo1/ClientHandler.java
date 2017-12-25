@@ -1,4 +1,4 @@
-package com.liujiang.nettylearn.studyNetty.NettyDemo1;
+package com.liujiang.nettylearn.NettyDemo1;
 
 
 import io.netty.buffer.ByteBuf;

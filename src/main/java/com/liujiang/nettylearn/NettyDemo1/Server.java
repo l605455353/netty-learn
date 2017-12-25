@@ -1,4 +1,4 @@
-package com.liujiang.nettylearn.studyNetty.NettyDemo1;
+package com.liujiang.nettylearn.NettyDemo1;
 
 
 
@@ -46,10 +46,12 @@ public class Server {
                     .option(ChannelOption.SO_RCVBUF, 32 * 1024) //设置接受数据缓冲大小
                     .childOption(ChannelOption.SO_KEEPALIVE, true); //保持连接
             ChannelFuture future = bootstrap.bind(port).sync();
+            //等待服务器监听端口关闭
             future.channel().closeFuture().sync();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            // 优雅退出，释放线程池资源
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }

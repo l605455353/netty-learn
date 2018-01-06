@@ -24,9 +24,8 @@ public class Client {
         // 发起异步连接操作
         ChannelFuture future = bootstrap.connect("127.0.0.1", 8379).sync();
         future.channel().writeAndFlush(Unpooled.copiedBuffer("我是客户端".getBytes()));
-        // 等待客户端链路关闭
+
         future.channel().closeFuture().sync();
-        // 优雅退出，释放NIO线程组
         workerGroup.shutdownGracefully();
     }
 }

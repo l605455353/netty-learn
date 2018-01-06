@@ -35,6 +35,7 @@ public class TimeClientHandle implements Runnable {
             doConnect();
         } catch (IOException e) {
             e.printStackTrace();
+            System.exit(1);
         }
         while (!stop) {
 
@@ -45,7 +46,19 @@ public class TimeClientHandle implements Runnable {
                 SelectionKey key = null;
                 while (iterator.hasNext()) {
                     key = iterator.next();
-                    handleInput(key);
+                    iterator.remove();
+                    try {
+                        handleInput(key);
+
+                    } catch (Exception e) {
+                        if (key != null) {
+                            key.cancel();
+                            if (key.channel() != null) {
+                                key.channel().close();
+
+                            }
+                        }
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();

@@ -2,6 +2,7 @@ package com.liujiang.nettylearn.NettyDemo1;
 
 
 
+import com.liujiang.nettylearn.protobuf.proto.UserProto;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -10,6 +11,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.protobuf.ProtobufDecoder;
+import io.netty.handler.codec.protobuf.ProtobufEncoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 
 public class Server {
     private int port;
@@ -28,7 +33,9 @@ public class Server {
                     .childHandler(new ChannelInitializer<SocketChannel>() { //配置具体的数据处理方式
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
+
                             socketChannel.pipeline().addLast(new ServerHandler());
+
                         }
                     })
                     /**
@@ -45,6 +52,7 @@ public class Server {
                     .option(ChannelOption.SO_SNDBUF, 32 * 1024) //设置发送数据缓冲大小
                     .option(ChannelOption.SO_RCVBUF, 32 * 1024) //设置接受数据缓冲大小
                     .childOption(ChannelOption.SO_KEEPALIVE, true); //保持连接
+            // 绑定端口 ，同步等待成功
             ChannelFuture future = bootstrap.bind(port).sync();
             //等待服务器监听端口关闭
             future.channel().closeFuture().sync();

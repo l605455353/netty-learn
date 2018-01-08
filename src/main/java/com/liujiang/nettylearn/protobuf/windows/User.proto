@@ -1,0 +1,25 @@
+option java_package="com.liujiang.nettylearn.protobuf.proto";
+option java_outer_classname="UserProto";
+
+message User{
+
+        required string name = 1;
+        required int32 password = 2;
+        optional int64 phone = 3;
+        repeated string hobby = 4;
+        optional string sex = 5;
+        optional UserStatus user = 6[default = OFF_LINE];
+        optional Address address = 7;
+
+
+        enum UserStatus {
+                OFF_LINE = 0; //离线用户
+                ON_LINE = 1; //在线用户
+            }
+
+        message Address {
+                optional string province = 1;
+                required int32 postcode = 2;
+            }
+
+}

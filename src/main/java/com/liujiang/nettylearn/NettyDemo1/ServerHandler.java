@@ -1,5 +1,7 @@
 package com.liujiang.nettylearn.NettyDemo1;
 
+import com.liujiang.nettylearn.protobuf.Testprotobuf;
+import com.liujiang.nettylearn.protobuf.proto.UserProto;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerAdapter;
@@ -16,10 +18,9 @@ public class ServerHandler extends ChannelHandlerAdapter {
         String request = new String(data, "utf-8");
         System.out.println("Server: " + request);
         //写给客户端
-        String response = "我是服务端8379";
+       String response = "我是服务端8379";
         ctx.writeAndFlush(Unpooled.copiedBuffer(response.getBytes()));
         //.addListener(ChannelFutureListener.CLOSE);
-
 
 
     }

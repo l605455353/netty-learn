@@ -1,4 +1,4 @@
-package com.liujiang.nettylearn.IO;
+package com.liujiang.nettylearn.javaIO.BIO;
 
 import java.io.BufferedReader;
 import java.io.IOException;

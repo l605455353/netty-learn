@@ -1,9 +1,8 @@
-package com.liujiang.nettylearn.NettyProtoDemo;
+package com.liujiang.nettylearn.nettyProtoDemo;
 
 
 import com.liujiang.nettylearn.protobuf.Testprotobuf;
 import com.liujiang.nettylearn.protobuf.proto.UserProto;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;

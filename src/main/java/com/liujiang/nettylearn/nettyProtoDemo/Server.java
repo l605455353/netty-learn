@@ -1,4 +1,4 @@
-package com.liujiang.nettylearn.NettyProtoDemo;
+package com.liujiang.nettylearn.nettyProtoDemo;
 
 
 

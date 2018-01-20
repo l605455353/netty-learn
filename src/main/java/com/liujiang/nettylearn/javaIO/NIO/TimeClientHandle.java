@@ -1,9 +1,8 @@
-package com.liujiang.nettylearn.NIO;
+package com.liujiang.nettylearn.javaIO.NIO;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -11,117 +10,103 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class TimeClientHandle implements Runnable {
-    private String ip;
+    private String host;
     private int port;
     private Selector selector;
     private SocketChannel socketChannel;
     private volatile boolean stop;
 
-    public TimeClientHandle(String ip, int port) {
+
+    public TimeClientHandle(String host, int port) {
+        this.host = host==null ? "127.0.0.1":host;
+        this.port = port;
+
         try {
-            this.ip = ip;
-            this.port = port;
-            selector = Selector.open();
+            selector=Selector.open();
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
         } catch (IOException e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 
     @Override
     public void run() {
         try {
+            // 连接
             doConnect();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
-        while (!stop) {
 
+        while (!stop) {
             try {
                 selector.select(1000);
                 Set<SelectionKey> selectionKeys = selector.selectedKeys();
                 Iterator<SelectionKey> iterator = selectionKeys.iterator();
                 SelectionKey key = null;
                 while (iterator.hasNext()) {
-                    key = iterator.next();
+                    key=iterator.next();
                     iterator.remove();
-                    try {
-                        handleInput(key);
-
-                    } catch (Exception e) {
-                        if (key != null) {
-                            key.cancel();
-                            if (key.channel() != null) {
-                                key.channel().close();
-
-                            }
-                        }
-                    }
+                    handleInput(key);
                 }
+
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
-        // 关闭多路复用器
-        if (selector != null) {
-            try {
-                selector.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
     }
 
     private void handleInput(SelectionKey key) throws IOException {
         if (key.isValid()) {
-            SocketChannel sc = (SocketChannel) key.channel();
-            if (key.isConnectable()){
+            SocketChannel sc = (SocketChannel)key.channel();
+            if (key.isConnectable()) {
                 if (sc.finishConnect()) {//true 说明客户端连接成功
                     sc.register(selector, SelectionKey.OP_READ);
-                    doWrite(sc,"客户端连接成功");
-                }else System.exit(1);//连接失败，进程退出
+                    doWrite(sc);
+                }else System.exit(1); // 连接失败，退出进程
             }
 
             if (key.isReadable()) {
+                // read date
                 ByteBuffer readBuffer = ByteBuffer.allocate(1024);
-                int read = sc.read(readBuffer);
-                if (read > 0) {
+                int readBytes = sc.read(readBuffer);
+                if (readBytes > 0) {
                     readBuffer.flip();
+                    // buffer.remaining() 查看剩余可用的空间 写入buffer缓存区的user数据大小
                     byte[] bytes = new byte[readBuffer.remaining()];
                     readBuffer.get(bytes);
                     String body = new String(bytes, "UTF-8");
-                    System.out.println("服务端发送来的信息："+body);
-
-                } else if (read < 0) {
+                    System.out.println("Now is : " + body);
+                    this.stop=true;
+                } else if (readBytes < 0) {
+                    // 对端链路关闭
                     key.cancel();
                     sc.close();
-                }else ; // 读到0字节，忽略
+                }else ;//读到0字节，忽略
             }
-
         }
     }
 
 
     private void doConnect() throws IOException {
         // 如果直接连接成功，则注册到多路复用器上，发送请求消息，读出应答
-        if (socketChannel.connect(new InetSocketAddress(ip, port))) {
+        if (socketChannel.connect(new InetSocketAddress(host, port))) {
             socketChannel.register(selector, SelectionKey.OP_READ);
-            doWrite(socketChannel, "客户端已经收到你的消息啦");
-        } else {
-            // 说明服务器没有返回TCP握手应答消息,但这并不代表连接失败,我们需要将SocketChannel注册到Selector上
-            socketChannel.register(selector, SelectionKey.OP_CONNECT);
-        }
+            doWrite(socketChannel);
+        } else socketChannel.register(selector, SelectionKey.OP_CONNECT);
     }
 
-    private void doWrite(SocketChannel socketChannel, String response) throws IOException {
-        byte[] bytes = response.getBytes();
-        ByteBuffer writeBuffer = ByteBuffer.allocate(bytes.length);
-        writeBuffer.put(bytes);
+    private void doWrite(SocketChannel socketChannel) throws IOException {
+        byte[] req = "QUERY TIME ORDER".getBytes();
+        ByteBuffer writeBuffer = ByteBuffer.allocate(req.length);
+        writeBuffer.put(req);
+        // 用于读取buffer中的数据
         writeBuffer.flip();
         socketChannel.write(writeBuffer);
+        if (!writeBuffer.hasRemaining())System.out.println("Send order 2 service succeed");
     }
 }

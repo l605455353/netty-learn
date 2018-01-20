@@ -1,8 +1,6 @@
-package com.liujiang.nettylearn.NettyDemo1;
+package com.liujiang.nettylearn.commonDemo;
 
 
-
-import com.liujiang.nettylearn.protobuf.proto.UserProto;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -11,10 +9,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.protobuf.ProtobufDecoder;
-import io.netty.handler.codec.protobuf.ProtobufEncoder;
-import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
-import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 
 public class Server {
     private int port;
@@ -24,6 +18,10 @@ public class Server {
     }
 
     public void run() {
+         /* 配置服务端的NIO线程组 */
+        // NioEventLoopGroup类 是个线程组，包含一组NIO线程，用于网络事件的处理
+        // （实际上它就是Reactor线程组）。
+        // 创建的2个线程组，1个是服务端接收客户端的连接，另一个是进行SocketChannel的网络读写
         EventLoopGroup bossGroup = new NioEventLoopGroup(); //用于处理服务器端接收客户端连接
         EventLoopGroup workerGroup = new NioEventLoopGroup(); //进行网络通信（读写）
         try {
@@ -33,7 +31,9 @@ public class Server {
                     .childHandler(new ChannelInitializer<SocketChannel>() { //配置具体的数据处理方式
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-
+                            // 增加 LineBasedFrameDecoder 和StringDecoder编码器
+                            /*socketChannel.pipeline().addLast(new LineBasedFrameDecoder(1024));
+                            socketChannel.pipeline().addLast(new StringDecoder());*/
                             socketChannel.pipeline().addLast(new ServerHandler());
 
                         }
@@ -52,6 +52,7 @@ public class Server {
                     .option(ChannelOption.SO_SNDBUF, 32 * 1024) //设置发送数据缓冲大小
                     .option(ChannelOption.SO_RCVBUF, 32 * 1024) //设置接受数据缓冲大小
                     .childOption(ChannelOption.SO_KEEPALIVE, true); //保持连接
+
             // 绑定端口 ，同步等待成功
             ChannelFuture future = bootstrap.bind(port).sync();
             //等待服务器监听端口关闭
@@ -59,11 +60,24 @@ public class Server {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            // 优雅退出，释放线程池资源
+            // 释放线程池资源
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
     }
+
+    /**
+     * 解决粘包和拆包
+     */
+ /*   private class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
+        @Override
+        protected  void initChannel(SocketChannel arg0)throws Exception{
+            // 增加 LineBasedFrameDecoder 和StringDecoder编码器
+            arg0.pipeline().addLast(new LineBasedFrameDecoder(1024));
+            arg0.pipeline().addLast(new StringDecoder());
+            arg0.pipeline().addLast(new ServerHandler());
+        }
+    }*/
 
     public static void main(String[] args) {
         new Server(8379).run();
